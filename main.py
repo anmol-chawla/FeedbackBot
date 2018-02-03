@@ -7,26 +7,26 @@ from datetime import datetime
 from datetime import timezone
 import uuid
 import models as dbHandler
-import chatbot
+from chatbot import Chat, pairs, reflections
 
 app = Flask(__name__)
-
+chat = Chat(pairs, reflections)
 
 @app.route('/talk/bot', methods=['POST'])
 def getResponse():
     if not request:
         abort(404)
     query = request.form['query']
-    response = chatbot.getResponse(query)
-    uid = uuid.uuid4()
-    timeStamp = datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S %Z")
+    response = chat.converse(query)
+    uid = request.form['token']
+    timeStamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
     items = {
         'Query': query,
         'Response': response,
         'UUID': uid,
         'Time': timeStamp
     }
-    dbHandler.insertQueries(str(uid), timeStamp, query, response)
+    dbHandler.insertQueries(uid, timeStamp, query, response)
     return jsonify({'Items': items})
 
 
